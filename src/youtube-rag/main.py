@@ -1,5 +1,3 @@
-# https://github.com/svpino/youtube-rag/blob/main/rag.ipynb
-
 from langchain_core.output_parsers import StrOutputParser
 from langchain.prompts import ChatPromptTemplate
 from operator import itemgetter

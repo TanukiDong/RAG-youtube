@@ -4,7 +4,7 @@ from langchain_openai import AzureChatOpenAI
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 
 from settings import (
-    MODEL_ID,
+    LLM_MODEL_ID,
     OPENAI_API_VERSION,
     OPENAI_ENDPOINT,
     TEMPERATURE,
@@ -14,7 +14,7 @@ from settings import (
 
 @cache
 def init_llm(
-    model_id=MODEL_ID,
+    model_id=LLM_MODEL_ID,
     api_version=OPENAI_API_VERSION,
     temperature=TEMPERATURE,
     seed=SEED,
