@@ -5,20 +5,41 @@ from langchain_community.document_loaders import TextLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import DocArrayInMemorySearch
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough
+from langchain_openai import AzureChatOpenAI, AzureOpenAIEmbeddings
+from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 
-from llm import init_llm
-from embeddings import init_embeddings
+from settings import (
+    OPENAI_ENDPOINT,
+    EMBEDDING_MODEL_ID,
+    LLM_MODEL_ID,
+    OPENAI_API_VERSION,
+    TEMPERATURE,
+    SEED)
 
-with open("src/youtube-rag/transcription.txt") as file:
-    transcription = file.read()
+azure_credential = DefaultAzureCredential()
+token_provider = get_bearer_token_provider(
+    azure_credential, "https://cognitiveservices.azure.com/.default"
+)
 
-loader = TextLoader("src/youtube-rag/transcription.txt")
+loader = TextLoader("src/youtube-rag/transcription-elden-lore.txt")
 text_documents = loader.load()
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=20)
 documents = text_splitter.split_documents(text_documents)
 
-embeddings = init_embeddings()
-model = init_llm()
+embeddings = AzureOpenAIEmbeddings(
+        azure_ad_token_provider=token_provider,
+        azure_endpoint=OPENAI_ENDPOINT,
+        azure_deployment=EMBEDDING_MODEL_ID
+    )
+model = AzureChatOpenAI(
+        api_version=OPENAI_API_VERSION,
+        azure_ad_token_provider=token_provider,
+        azure_endpoint=OPENAI_ENDPOINT,
+        azure_deployment=LLM_MODEL_ID,
+        temperature=TEMPERATURE,
+        model_kwargs={"seed": SEED},
+        streaming=True,
+    )
 parser = StrOutputParser()
 
 template = """
@@ -46,6 +67,6 @@ setup = RunnableParallel(
     )
 chain = setup | prompt | model | parser
 
-result = chain.invoke("Does Rellana love Messmer?")
+result = chain.invoke("What is an Empyrean?")
 print()
 print(result)

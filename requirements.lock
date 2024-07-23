@@ -186,6 +186,8 @@ python-dotenv==1.0.1
     # via youtube-rag
 pytube==15.0.0
     # via youtube-rag
+pytubefix==6.5.1
+    # via youtube-rag
 pyyaml==6.0.1
     # via langchain
     # via langchain-community

@@ -1,11 +1,11 @@
 import os
 import tempfile
-import ffmpeg
 import whisper
-from pytube import YouTube
+# from pytube import YouTube
+from pytubefix import YouTube
 
-# YOUTUBE_VIDEO = "https://www.youtube.com/watch?v=SOvZ-SxftV4" # Lore Recap Before DLC
-YOUTUBE_VIDEO = "https://www.youtube.com/watch?v=Nlth97VZP70" # Rellana, Twin Moon Knight
+YOUTUBE_VIDEO = """https://www.youtube.com/watch?v=SOvZ-SxftV4""" # Lore Recap Before DLC
+# YOUTUBE_VIDEO = "https://www.youtube.com/watch?v=Nlth97VZP70" # Rellana, Twin Moon Knight
 # Define the path to the transcription file in the "src" folder
 transcription_file_path = os.path.join("src/youtube-rag", "transcription.txt")
 
@@ -13,10 +13,8 @@ transcription_file_path = os.path.join("src/youtube-rag", "transcription.txt")
 if not os.path.exists(transcription_file_path):
     youtube = YouTube(YOUTUBE_VIDEO)
     audio = youtube.streams.filter(only_audio=True).first()
-
-    # Let's load the base model. This is not the most accurate
-    # model but it's fast.
-    whisper_model = whisper.load_model("base")
+    
+    whisper_model = whisper.load_model("medium.en")
 
     with tempfile.TemporaryDirectory() as tmpdir:
         file = audio.download(output_path=tmpdir)
