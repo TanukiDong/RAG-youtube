@@ -5,46 +5,22 @@ from langchain_community.document_loaders import TextLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import DocArrayInMemorySearch
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough
-from langchain_openai import AzureChatOpenAI, AzureOpenAIEmbeddings
-from azure.identity import DefaultAzureCredential, get_bearer_token_provider
+from pathlib import Path
 
-from settings import (
-    OPENAI_ENDPOINT,
-    EMBEDDING_MODEL_ID,
-    LLM_MODEL_ID,
-    OPENAI_API_VERSION,
-    TEMPERATURE,
-    SEED)
+from model import llm, embeddings
 
-azure_credential = DefaultAzureCredential()
-token_provider = get_bearer_token_provider(
-    azure_credential, "https://cognitiveservices.azure.com/.default"
-)
-
-loader = TextLoader("src/youtube-rag/transcription-elden-lore.txt")
+DIR = Path(__file__).parent / "transcription/transcription-elden-lore.txt"
+loader = TextLoader(DIR)
 text_documents = loader.load()
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=20)
 documents = text_splitter.split_documents(text_documents)
 
-embeddings = AzureOpenAIEmbeddings(
-        azure_ad_token_provider=token_provider,
-        azure_endpoint=OPENAI_ENDPOINT,
-        azure_deployment=EMBEDDING_MODEL_ID
-    )
-model = AzureChatOpenAI(
-        api_version=OPENAI_API_VERSION,
-        azure_ad_token_provider=token_provider,
-        azure_endpoint=OPENAI_ENDPOINT,
-        azure_deployment=LLM_MODEL_ID,
-        temperature=TEMPERATURE,
-        model_kwargs={"seed": SEED},
-        streaming=True,
-    )
 parser = StrOutputParser()
 
 template = """
 Answer the question based on the context below. If you can't 
-answer the question, reply "I don't know".
+answer the question, simply reply "I don't know".
+Only use the information from the provided context, do not search the web.
 
 Context: {context}
 
@@ -65,8 +41,9 @@ setup = RunnableParallel(
     context=vectorstore.as_retriever(),
     question=RunnablePassthrough()
     )
-chain = setup | prompt | model | parser
+chain = setup | prompt | llm | parser
 
-result = chain.invoke("What is an Empyrean?")
+question = input("What do you wish to know?\n")
+result = chain.invoke(question)
 print()
 print(result)
